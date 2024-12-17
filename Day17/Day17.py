@@ -86,7 +86,7 @@ class Solution:
 
     def bst_instruction(self, literal_operand):
         combo_operand = self.get_combo_operand(literal_operand)
-        self.registerB = combo_operand % 8
+        self.registerB = combo_operand & 7  # modulo 8 is same as AND 7
 
     def jnz_instruction(self, literal_operand):
         jumped = False
@@ -99,7 +99,7 @@ class Solution:
 
     def out_instruction(self, literal_operand):
         combo_operand = self.get_combo_operand(literal_operand)
-        return combo_operand % 8
+        return combo_operand & 7 # modulo 8 is same as AND 7
 
     def bdv_instruction(self, literal_operand):
         self.registerB = self.dv_instruction(literal_operand)
@@ -108,11 +108,9 @@ class Solution:
         self.registerC = self.dv_instruction(literal_operand)
 
     def dv_instruction(self, literal_operand):
+        # dividing by 2^(combo_operand) and flooring the result is a bit shift right combo_operand number of times
         combo_operand = self.get_combo_operand(literal_operand)
-        numerator = self.registerA
-        denominator = pow(2, combo_operand)
-        div = numerator//denominator        # floor division
-        return div
+        return self.registerA >> combo_operand
     
 
 ###################################################################################
