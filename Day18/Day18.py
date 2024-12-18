@@ -31,15 +31,30 @@ class Solution:
 
 
     def part_two(self, num_bytes_fallen):
-        # somewhere between num_bytes_fallen - end of fallen bytes, one additional coordinate will mean a path can't be found. return the coordinate
-        # TODO: ideally I should binary search between 1024-end(3450)
-        for byte in self.fallen_bytes[num_bytes_fallen : -1]:
-            # add byte to set
-            self.corrupted_memory.add(byte)
+        lower_search_field = num_bytes_fallen
+        upper_search_field = len(self.fallen_bytes) - 1
+        failed_byte_found = False
+
+        while failed_byte_found == False:
+
+            search_index = int((lower_search_field + upper_search_field) / 2)
+
+            # modify the corrupted memory set
+            self.corrupted_memory.clear()
+            for byte in self.fallen_bytes[0:search_index]:
+                self.corrupted_memory.add(byte)
+
+            # a* search and update the search field
             steps_to_end = self.a_star_search()
             if steps_to_end == None:
-                break
-        return byte
+                upper_search_field = search_index
+            else:
+                lower_search_field = search_index
+
+            if upper_search_field - lower_search_field == 1:
+                failed_byte_found = True
+
+        return self.fallen_bytes[upper_search_field - 1]
     
 
     def a_star_search(self):
