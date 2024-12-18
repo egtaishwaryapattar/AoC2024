@@ -30,8 +30,16 @@ class Solution:
         return self.a_star_search()
 
 
-    def part_two(self):
-        return 0
+    def part_two(self, num_bytes_fallen):
+        # somewhere between num_bytes_fallen - end of fallen bytes, one additional coordinate will mean a path can't be found. return the coordinate
+        # TODO: ideally I should binary search between 1024-end(3450)
+        for byte in self.fallen_bytes[num_bytes_fallen : -1]:
+            # add byte to set
+            self.corrupted_memory.add(byte)
+            steps_to_end = self.a_star_search()
+            if steps_to_end == None:
+                break
+        return byte
     
 
     def a_star_search(self):
@@ -60,6 +68,8 @@ class Solution:
                         priority_q.append(next_node)
 
                 priority_q.sort()
+
+        return None
             
 
     def get_next_nodes(self, node):
@@ -100,7 +110,7 @@ solution.parse_input(filename)
 
 start = perf_counter()
 part1 = solution.part_one(max_coordinate, num_bytes_fallen)
-part2 = solution.part_two()
+part2 = solution.part_two(num_bytes_fallen)
 end = perf_counter()
 print(f"Part 1 = {part1}")
 print(f"Part 2 = {part2}")         
