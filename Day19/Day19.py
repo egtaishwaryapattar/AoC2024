@@ -42,16 +42,17 @@ class Solution:
     
 
     def is_design_possible(self, design):
-        # solve using depth-first search and caching the nodes that lead to the solution
-        # node is array of substrings as the design string is broken up
-        node = [design]
+        # solve using a* search - heuristic is number of letters away from the end
+        # node is (cost, array of substrings)
+        node = (0, [design])
         q = [node]
         solution_found = False
 
         while len(q) > 0:
             node = q.pop(0)
 
-            substr = node[-1]
+            arr = node[1]
+            substr = arr[-1]
             first_letter = substr[0]
             cache = self.patterns.get(first_letter)
 
@@ -66,23 +67,33 @@ class Solution:
                 for value in cache:
                     if substr.startswith(value):
                         # discard the last element of the node array and add the new split substring 
-                        next_node = node[:-1]
-                        next_node.append(value)
-                        next_node.append(substr[len(value):])
+                        next_arr = arr[:-1]
+                        next_arr.append(value)
+                        next_arr.append(substr[len(value):])
 
+                        cost = self.get_heuristic(next_arr)
+                        next_node = (cost, next_arr)
                         next_nodes.append(next_node)
                 
                 q = next_nodes + q
+                q.sort()
 
+        # forget adding to cache as it'll build up too much
+        '''
         if solution_found:
             # add all substrs to cache
             new_pattern = ''
             for str in reversed(node):
                 new_pattern = str + new_pattern
                 self.add_pattern_to_cache(new_pattern)
-
+        '''
         return solution_found
-        
+    
+
+    def get_heuristic(self, next_arr):
+        steps_so_far = len(next_arr[:-1])
+        letters_left = len(next_arr[-1])
+        return steps_so_far + letters_left
 
     def add_pattern_to_cache(self, pattern):
         key = pattern[0]
@@ -98,7 +109,7 @@ class Solution:
 ###################################################################################
 solution = Solution()
 dir_name = os.path.dirname(__file__)
-filename = os.path.join(dir_name, 'puzzle_input.txt')
+filename = os.path.join(dir_name, 'test.txt')
 solution.parse_input(filename)
 
 start = perf_counter()
