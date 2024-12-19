@@ -3,7 +3,7 @@ import os
 
 class Solution:
     def __init__(self):
-        self.patterns = set()
+        self.patterns = {}
         self.designs = []
     
 
@@ -18,7 +18,7 @@ class Solution:
             if line_number == 0:
                 patterns = line.split(', ')
                 for pattern in patterns:
-                    self.patterns.add(pattern)
+                    self.add_pattern_to_cache(pattern)
 
             elif line_number > 1:
                 self.designs.append(line)
@@ -27,7 +27,6 @@ class Solution:
 
     
     def part_one(self):
-        self.add_new_patterns_to_cache(self.patterns)
 
         # get possible designs
         possible_designs = 0
@@ -43,56 +42,57 @@ class Solution:
     
 
     def is_design_possible(self, design):
-        # check if we have already encountered this design
-        if design in self.patterns:
-            return True
+        # solve using depth-first search and caching the nodes that lead to the solution
+        # node is array of substrings as the design string is broken up
+        node = [design]
+        q = [node]
+        solution_found = False
+
+        while len(q) > 0:
+            node = q.pop(0)
+
+            substr = node[-1]
+            first_letter = substr[0]
+            cache = self.patterns.get(first_letter)
+
+            if cache is not None:
+                # check if substr exists in the cache - break when one (of possible multiple) solution is found
+                if substr in cache:
+                    solution_found = True
+                    break
+                
+                # else see what values in the cache match the beginning of the substring and add to front of queue
+                next_nodes = []
+                for value in cache:
+                    if substr.startswith(value):
+                        # discard the last element of the node array and add the new split substring 
+                        next_node = node[:-1]
+                        next_node.append(value)
+                        next_node.append(substr[len(value):])
+
+                        next_nodes.append(next_node)
+                
+                q = next_nodes + q
+
+        if solution_found:
+            # add all substrs to cache
+            new_pattern = ''
+            for str in reversed(node):
+                new_pattern = str + new_pattern
+                self.add_pattern_to_cache(new_pattern)
+
+        return solution_found
         
-        sub_patterns = []
-        substr = design
-        design_possible = True
 
-        while len(substr) > 0:
-            sub_pattern = self.find_first_pattern_in_string(substr)
+    def add_pattern_to_cache(self, pattern):
+        key = pattern[0]
 
-            if sub_pattern == None:
-                design_possible = False
-                break
-            else:
-                sub_patterns.append(sub_pattern)
-                # test the next substring
-                strs = substr.split(sub_pattern)
-                substr = strs[1]
-
-        # add new sub patterns to cache
-        self.add_new_patterns_to_cache(sub_patterns)
-        if design_possible:
-            self.patterns.add(design)
-
-        return design_possible
+        values = self.patterns.get(key)
+        if values is None:
+            values = set()
         
-        
-    def add_new_patterns_to_cache(self, patterns):
-        # pad out the patterns with additional combos
-        new_patterns = []
-        for pattern1 in patterns:
-            for pattern2 in patterns:
-                new_patterns.append(pattern1 + pattern2)
-
-        # add to cache
-        for pattern in new_patterns:
-            self.patterns.add(pattern)
-
-
-    def find_first_pattern_in_string(self, str):
-        # test for i = 0
-        if str in self.patterns:
-            return str
-
-        for i in range(1, len(str)):
-            substr = str[:-i]
-            if substr in self.patterns:
-                return substr
-        return None
+        values.add(pattern)
+        self.patterns[key] = values
 
 
 ###################################################################################
