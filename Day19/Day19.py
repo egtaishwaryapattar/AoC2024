@@ -40,7 +40,12 @@ class Solution:
     def part_one(self):
         possible_designs = 0
         for design in self.designs:
-            if self.is_design_possible(design):
+            # use a cache (memoization) to keep track of up to what length of the design matches have been found
+            # if we know we can build up to design[X] with a combination of patterns, we don't care that we can build up to design[X] with a different combination of patterns
+            # just want to get to the end and preventing repetition will save time
+
+            design_memoization = set()
+            if self.is_design_possible(0, design, design_memoization):
                 possible_designs += 1
 
         return possible_designs
@@ -50,7 +55,7 @@ class Solution:
         return 0
     
 
-    def is_design_possible(self, design_substr):
+    def is_design_possible(self, design_index, design_substr, memo):
         # iterate through pattern list and see if a match can be found for the substring
         first_letter = design_substr[0]
         pattern_list = self.patterns.get(first_letter)
@@ -59,15 +64,24 @@ class Solution:
             return False
 
         for pattern in pattern_list:
-            if len(pattern) > len(design_substr):
-                continue
-
             if pattern == design_substr:
                 return True
             
+            # don't bother searching if the pattern length is greater than the length remaining on the substring
+            if len(pattern) > len(design_substr):
+                continue
+
+            # don't bother searching if using this towel pattern gets us to desing[index] that we have already searched before
+            index = design_index + len(pattern)
+            if index in memo:
+                continue
+            
             if design_substr.startswith(pattern):
+                # add to cache so we know that up to this index of the overall design, the patterns match so far
+                memo.add(index)
+
                 # get the remainder of the substring with the pattern removed and search the remainder for more patterns that match
-                if self.is_design_possible(design_substr[len(pattern):]):
+                if self.is_design_possible(index, design_substr[len(pattern):], memo):
                     return True
 
         # no patterns found that match the substring
@@ -77,7 +91,7 @@ class Solution:
 ###################################################################################
 solution = Solution()
 dir_name = os.path.dirname(__file__)
-filename = os.path.join(dir_name, 'test2.txt')
+filename = os.path.join(dir_name, 'puzzle_input.txt')
 solution.parse_input(filename)
 
 start = perf_counter()
