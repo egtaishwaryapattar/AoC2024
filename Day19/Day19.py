@@ -37,55 +37,53 @@ class Solution:
             self.patterns[key] = values[::-1]
 
     
-    def part_one(self):
+    def run(self):
         possible_designs = 0
+        total = 0
         for design in self.designs:
             # use a cache (memoization) to keep track of up to what length of the design matches have been found
             # if we know we can build up to design[X] with a combination of patterns, we don't care that we can build up to design[X] with a different combination of patterns
             # just want to get to the end and preventing repetition will save time
 
-            design_memoization = set()
-            if self.is_design_possible(0, design, design_memoization):
+            design_memoization = {}
+            num_possibilities = self.is_design_possible(0, design, design_memoization)
+            if num_possibilities > 0:
                 possible_designs += 1
+                total += num_possibilities
 
-        return possible_designs
+        return possible_designs, total
 
-
-    def part_two(self):
-        return 0
-    
 
     def is_design_possible(self, design_index, design_substr, memo):
-        # iterate through pattern list and see if a match can be found for the substring
-        first_letter = design_substr[0]
-        pattern_list = self.patterns.get(first_letter)
+        count = 0 
+
+        # don't bother searching here if we have already searched here before. Use previously calculated result
+        if design_index in memo:
+            count += memo[design_index]
         
-        if pattern_list == None:
-            return False
+        else:
+            # iterate through pattern list and see if a match can be found for the substring
+            first_letter = design_substr[0]
+            pattern_list = self.patterns.get(first_letter)
+            if pattern_list != None:
+                for pattern in pattern_list:
+                    if pattern == design_substr:
+                        count += 1
+                        continue
+                    
+                    # don't bother searching if the pattern length is greater than the length remaining on the substring
+                    if len(pattern) > len(design_substr):
+                        continue
+                    
+                    if design_substr.startswith(pattern):
+                        # get the remainder of the substring with the pattern removed and search the remainder for more patterns that match
+                        count += self.is_design_possible(design_index + len(pattern), design_substr[len(pattern):], memo)
+                        
+            if memo.get(design_index) is None:
+                # add to cache so we know how many matches are possible up from this index - only add once!!
+                memo[design_index] = count
 
-        for pattern in pattern_list:
-            if pattern == design_substr:
-                return True
-            
-            # don't bother searching if the pattern length is greater than the length remaining on the substring
-            if len(pattern) > len(design_substr):
-                continue
-
-            # don't bother searching if using this towel pattern gets us to desing[index] that we have already searched before
-            index = design_index + len(pattern)
-            if index in memo:
-                continue
-            
-            if design_substr.startswith(pattern):
-                # add to cache so we know that up to this index of the overall design, the patterns match so far
-                memo.add(index)
-
-                # get the remainder of the substring with the pattern removed and search the remainder for more patterns that match
-                if self.is_design_possible(index, design_substr[len(pattern):], memo):
-                    return True
-
-        # no patterns found that match the substring
-        return False
+        return count
 
 
 ###################################################################################
@@ -95,8 +93,7 @@ filename = os.path.join(dir_name, 'puzzle_input.txt')
 solution.parse_input(filename)
 
 start = perf_counter()
-part1 = solution.part_one()
-part2 = solution.part_two()
+part1, part2 = solution.run()
 end = perf_counter()
 print(f"Part 1 = {part1}")  # answer of 334 is too low. 400 is too high (400 is all the results...)
 print(f"Part 2 = {part2}")         
