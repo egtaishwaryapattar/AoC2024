@@ -27,6 +27,9 @@ class Solution:
 
     
     def part_one(self):
+        for pattern1 in self.patterns:
+            for pattern2 in self.patterns:
+                self.add_pattern_to_cache(pattern1 + pattern2)
 
         # get possible designs
         possible_designs = 0
@@ -109,13 +112,13 @@ class Solution:
 ###################################################################################
 solution = Solution()
 dir_name = os.path.dirname(__file__)
-filename = os.path.join(dir_name, 'test.txt')
+filename = os.path.join(dir_name, 'puzzle_input.txt')
 solution.parse_input(filename)
 
 start = perf_counter()
 part1 = solution.part_one()
 part2 = solution.part_two()
 end = perf_counter()
-print(f"Part 1 = {part1}")  # answer of 334 is too low
+print(f"Part 1 = {part1}")  # answer of 334 is too low. 400 is too high (400 is all the results...)
 print(f"Part 2 = {part2}")         
 print(f"Duration = {end - start}s")

@@ -58,9 +58,6 @@ class Solution:
                 instruction_pointer += 2
 
         # write the output values as a comma separated string
-        print(f"A = {self.registerA}")
-        print(f"B = {self.registerB}")
-        print(f"C = {self.registerC}")
         return ','.join(map(str, self.output)) 
 
 
@@ -69,6 +66,9 @@ class Solution:
         instruction_pointer = last_op_code_index
         program_index = len(self.program) - 1       # last index of the program code to iterate through in reverse
         value_a_found = False
+
+        # TODO: think b and c need initial values when recursing backwards...
+        # the tests only test using register A and instructions 0,5 4, Probably need to write my own tests to test the other instructions
         
         while value_a_found == False:
 
@@ -105,9 +105,6 @@ class Solution:
                 instruction_pointer -= 2
 
         # write the output values as a comma separated string
-        print(f"A = {self.registerA}")
-        print(f"B = {self.registerB}")
-        print(f"C = {self.registerC}")
         return self.registerA
     
 
@@ -192,7 +189,7 @@ class Solution:
 ###################################################################################
 solution = Solution()
 dir_name = os.path.dirname(__file__)
-filename = os.path.join(dir_name, 'puzzle_input.txt')
+filename = os.path.join(dir_name, 'test2.txt')
 solution.parse_input(filename)
 
 start = perf_counter()
@@ -201,4 +198,15 @@ part2 = solution.part_two()
 end = perf_counter()
 print(f"Part 1 = {part1}")
 print(f"Part 2 = {part2}")         
+print(f"Duration = {end - start}s")
+
+
+start = perf_counter()
+diff = pow(2,48) - pow(2,45)
+print(diff)
+count = 0
+for i in range(diff):
+    count += 1
+
+end = perf_counter()
 print(f"Duration = {end - start}s")
