@@ -18,20 +18,26 @@ class Solution:
             if line_number == 0:
                 patterns = line.split(', ')
                 for pattern in patterns:
-                    self.add_pattern_to_cache(pattern)
-
+                    first_letter = pattern[0]
+                    values = self.patterns.get(first_letter)
+                    if values is None:
+                        values = [pattern]
+                    else:
+                        values.append(pattern)
+                    self.patterns[first_letter] = values
             elif line_number > 1:
                 self.designs.append(line)
 
             line_number += 1
 
+        # sort the pattern arrays 
+        for key in self.patterns:
+            values = self.patterns[key]
+            values.sort(key=len)
+            self.patterns[key] = values[::-1]
+
     
     def part_one(self):
-        for pattern1 in self.patterns:
-            for pattern2 in self.patterns:
-                self.add_pattern_to_cache(pattern1 + pattern2)
-
-        # get possible designs
         possible_designs = 0
         for design in self.designs:
             if self.is_design_possible(design):
@@ -44,75 +50,34 @@ class Solution:
         return 0
     
 
-    def is_design_possible(self, design):
-        # solve using a* search - heuristic is number of letters away from the end
-        # node is (cost, array of substrings)
-        node = (0, [design])
-        q = [node]
-        solution_found = False
-
-        while len(q) > 0:
-            node = q.pop(0)
-
-            arr = node[1]
-            substr = arr[-1]
-            first_letter = substr[0]
-            cache = self.patterns.get(first_letter)
-
-            if cache is not None:
-                # check if substr exists in the cache - break when one (of possible multiple) solution is found
-                if substr in cache:
-                    solution_found = True
-                    break
-                
-                # else see what values in the cache match the beginning of the substring and add to front of queue
-                next_nodes = []
-                for value in cache:
-                    if substr.startswith(value):
-                        # discard the last element of the node array and add the new split substring 
-                        next_arr = arr[:-1]
-                        next_arr.append(value)
-                        next_arr.append(substr[len(value):])
-
-                        cost = self.get_heuristic(next_arr)
-                        next_node = (cost, next_arr)
-                        next_nodes.append(next_node)
-                
-                q = next_nodes + q
-                q.sort()
-
-        # forget adding to cache as it'll build up too much
-        '''
-        if solution_found:
-            # add all substrs to cache
-            new_pattern = ''
-            for str in reversed(node):
-                new_pattern = str + new_pattern
-                self.add_pattern_to_cache(new_pattern)
-        '''
-        return solution_found
-    
-
-    def get_heuristic(self, next_arr):
-        steps_so_far = len(next_arr[:-1])
-        letters_left = len(next_arr[-1])
-        return steps_so_far + letters_left
-
-    def add_pattern_to_cache(self, pattern):
-        key = pattern[0]
-
-        values = self.patterns.get(key)
-        if values is None:
-            values = set()
+    def is_design_possible(self, design_substr):
+        # iterate through pattern list and see if a match can be found for the substring
+        first_letter = design_substr[0]
+        pattern_list = self.patterns.get(first_letter)
         
-        values.add(pattern)
-        self.patterns[key] = values
+        if pattern_list == None:
+            return False
+
+        for pattern in pattern_list:
+            if len(pattern) > len(design_substr):
+                continue
+
+            if pattern == design_substr:
+                return True
+            
+            if design_substr.startswith(pattern):
+                # get the remainder of the substring with the pattern removed and search the remainder for more patterns that match
+                if self.is_design_possible(design_substr[len(pattern):]):
+                    return True
+
+        # no patterns found that match the substring
+        return False
 
 
 ###################################################################################
 solution = Solution()
 dir_name = os.path.dirname(__file__)
-filename = os.path.join(dir_name, 'puzzle_input.txt')
+filename = os.path.join(dir_name, 'test2.txt')
 solution.parse_input(filename)
 
 start = perf_counter()
