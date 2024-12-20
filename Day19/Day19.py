@@ -65,23 +65,23 @@ class Solution:
             # iterate through pattern list and see if a match can be found for the substring
             first_letter = design_substr[0]
             pattern_list = self.patterns.get(first_letter)
+            
             if pattern_list != None:
                 for pattern in pattern_list:
                     if pattern == design_substr:
-                        count += 1
+                        count += 1      # exact match to the end of design string found
                         continue
                     
-                    # don't bother searching if the pattern length is greater than the length remaining on the substring
+                    # don't bother searching if the pattern length is greater than the length remaining on the substring - won't find match
                     if len(pattern) > len(design_substr):
                         continue
                     
                     if design_substr.startswith(pattern):
-                        # get the remainder of the substring with the pattern removed and search the remainder for more patterns that match
+                        # recurse with remainder of string and find how many possibilities the substring has
                         count += self.is_design_possible(design_index + len(pattern), design_substr[len(pattern):], memo)
                         
-            if memo.get(design_index) is None:
-                # add to cache so we know how many matches are possible up from this index - only add once!!
-                memo[design_index] = count
+            # add to cache so we know how many matches are possible up from this index
+            memo[design_index] = count
 
         return count
 
